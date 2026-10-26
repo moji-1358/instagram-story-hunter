@@ -58,7 +58,15 @@ def main():
         for username in usernames:
             log(f"Checking {username}")
             auth = base64.b64encode(f"-1::{username.lower().strip()}::{ANONSTORIES_KEY}".encode('utf-8'))
-            content = curl_cffi.post("https://anonstories.com/api/v1/story", data={"auth": auth}, impersonate="chrome").json()
+           response = curl_cffi.post(
+    "https://anonstories.com/api/v1/story",
+    data={"auth": auth},
+    impersonate="chrome"
+)
+log(f"HTTP status: {response.status_code}")
+log(f"Content-Type: {response.headers.get('content-type')}")
+log(f"Response: {response.text[:300]!r}")
+content = response.json()
             for story in content["stories"]:
                 try:
                     if story["media_type"] == "video":
