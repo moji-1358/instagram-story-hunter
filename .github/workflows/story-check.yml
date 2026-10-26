@@ -1,0 +1,42 @@
+
+name: Instagram Story Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  check-stories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyTelegramBotAPI curl_cffi python-dotenv
+
+      - name: Run story check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("bot.py")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace("while True:", "for _ in range(1):", 1)
+          s = s.replace("time.sleep(600)", "break")
+          p.write_text(s, encoding="utf-8")
+          PY
+          python bot.py
